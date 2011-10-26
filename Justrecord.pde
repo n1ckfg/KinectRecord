@@ -1,58 +1,6 @@
-import org.openkinect.*;
-import org.openkinect.processing.*;
-import ddf.minim.*;
-import processing.opengl.*;
-import proxml.*;
 
-//**************************************
-int maxDepthValue = 1040;  // full range 0-2047, rec'd 530-1040
-int minDepthValue = 530;  
-int w = 640;
-int h = 480;
-int fps = 30;
-
-String fileType = "tga";  //tif, tga, jpg, png; use tga for best speed
-String audioFileType = "wav";
-String fileName = "shot";
-String filePath = "data";
-//**************************************
-
-//sound
-Minim minim;
-AudioInput in;
-AudioRecorder fout;
-
-//--Kinect sectup
-Kinect kinect;
-boolean depth = true;
-boolean rgb = false;
-boolean ir = false;
-boolean process = false;
-float deg = 15;  // orig 15
-int[] depthArray;
-int pixelCounter = 1;
-//--
-
-int fontSize = 12;
-boolean record = false;
-PImage displayImg;
-PFont font;
-int counter = 1; 
-int shot = 1;
-int timestamp;
-int timestampInterval = 1000;
-String sayText;
-
-
-XMLInOut xmlIO;
-proxml.XMLElement xmlFile;
-String xmlFileName;
-boolean loaded = false;
-
-//-----------------------------------------
-
-void setup() {
-  size(w,h,P2D);
+void setupRecord() {
+  size(sW,sH,P2D);
   frameRate(fps);
   minim = new Minim(this);
   in = minim.getLineIn(Minim.STEREO, 512);
@@ -60,14 +8,14 @@ void setup() {
   font = createFont("Arial",fontSize);
   textFont(font,fontSize);
   initKinect();
-  displayImg = createImage(w,h,RGB);
+  displayImg = createImage(sW,sH,RGB);
   sayText="READY  " + fileName + shot;
   println(sayText);
 }
 
 //---
 
-void draw() {
+void drawRecord() {
   background(0);
   depthArray = kinect.getRawDepth();
   imageProcess();
@@ -94,7 +42,7 @@ void draw() {
   recDot();
 }
 
-void xmlEvent(proxml.XMLElement element) {
+void xmlEventRec(proxml.XMLElement element) {
   //this function is ccalled by default when an XML object is loaded
   xmlFile = element;
   //parseXML(); //appelle la fonction qui analyse le fichier XML
@@ -106,7 +54,7 @@ void xmlEvent(proxml.XMLElement element) {
 void recDot() {
   fill(200);
   text(sayText,40,35);
-  text(int(frameRate) + " fps", w-60,35);
+  text(int(frameRate) + " fps", sW-60,35);
   noFill();
   if(record&&(counter%2!=0)) {
     stroke(255,0,0);
@@ -120,8 +68,8 @@ void recDot() {
   strokeWeight(1);
   rectMode(CORNER);
   rect(3,59,633,360);
-  line((w/2)-10,(h/2),(w/2)+10,(h/2));
-  line((w/2),(h/2)-10,(w/2),(h/2)+10);
+  line((sW/2)-10,(sH/2),(sW/2)+10,(sH/2));
+  line((sW/2),(sH/2)-10,(sW/2),(sH/2)+10);
 }
 
 //---

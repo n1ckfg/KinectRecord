@@ -1,57 +1,8 @@
 //This is a utility to post-process and check for drop frames in Kinect recordings.
 //Copy the data folder recorded by Kinect_just_record before you start.
 
-import proxml.*;
-import peasy.*;
-import superCAD.*;
-//import processing.opengl.*;
 
-//**************************************
-boolean record3D = false; // records 3D rendering or just time-corrects original depth map
-int sW = 640;
-int sH = 480;
-float recordedFps = 30; //fps you shot at
-int numberOfFolders = 1;  //right now you must set this manually!
-String readFilePath = "data";
-String readFileName = "shot";
-String readFileType = "tga"; // record with tga for speed
-String writeFilePath = "render";
-String writeFileName = "shot";
-String writeFileType = "tga";  // render with png to save space
-float zscale = 1; //orig 3
-float zskew = 10;
-//**************************************
-
-String readString = "";
-String writeString = "";
-int shotNumOrig = 1;
-int shotNum = shotNumOrig;
-int readFrameNumOrig = 1;
-int readFrameNum = readFrameNumOrig;
-int readFrameNumMax;
-int writeFrameNum = readFrameNum;
-int addFrameCounter = 0;
-int subtractFrameCounter = 0;
-String xmlFileName = readFilePath + "/" + readFileName + shotNum + ".xml";
-
-PeasyCam cam;
-float[][] gray = new float[sH][sW];
-
-File dataFolder;
-String[] numFiles; 
-int[] timestamps;
-int nowTimestamp, lastTimestamp;
-float idealInterval = 1000/recordedFps;
-float errorAllow = 0;
-String diffReport = "";
-
-PImage img,buffer;
-
-proxml.XMLElement xmlFile;
-XMLInOut xmlIO;
-boolean loaded = false;
-
-void setup() {
+void setupRender() {
   reInit();
   if(record3D){
     size(sW, sH, P3D);
@@ -86,7 +37,7 @@ void reInit() {
   xmlLoad();
 }
 
-void xmlEvent(proxml.XMLElement element) {
+void xmlEventRead(proxml.XMLElement element) {
   //this function is ccalled by default when an XML object is loaded
   xmlFile = element;
   //parseXML(); //appelle la fonction qui analyse le fichier XML
@@ -96,7 +47,7 @@ void xmlEvent(proxml.XMLElement element) {
 }
 
 
-void draw() {
+void drawRender() {
   background(0);
   if (shotNum<=numberOfFolders) {
     if (loaded) {
