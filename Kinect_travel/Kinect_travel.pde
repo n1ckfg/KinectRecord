@@ -44,7 +44,7 @@ void draw() {
   background(0);
   depthArray = kinect.getRawDepth();
   imageProcess();
-  image(displayImg,4,0);
+  image(displayImg,-4,0);
   fill(255);
   textFont(degFont,int(degFontSize/4));
   text(int(frameRate)+" fps",width-30,20);
@@ -195,7 +195,7 @@ void initKinect() {
   kinect.enableRGB(rgbSwitch);
   kinect.enableIR(ir);
   kinect.processDepthImage(process);
-  kinect.tilt(deg);
+  //kinect.tilt(deg);
 }
 
 void stop() {
