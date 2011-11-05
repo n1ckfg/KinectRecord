@@ -5,10 +5,7 @@
 void setupRender() {
   reInit();
   if(record3D){
-    size(sW, sH, P3D);
   cam = new PeasyCam(this, sW);
-  }else{
-  size(sW,sH,P2D);
   }
   //smooth();
   stroke(255);

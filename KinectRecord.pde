@@ -1,5 +1,4 @@
-import org.openkinect.*;
-import org.openkinect.processing.*;
+import SimpleOpenNI.*;
 import ddf.minim.*;
 import processing.opengl.*;
 import proxml.*;
@@ -9,8 +8,8 @@ import superCAD.*;
 //-----------------------------------------
 //rec
 //**************************************
-int maxDepthValue = 1040;  // full range 0-2047, rec'd 530-1040
-int minDepthValue = 530;  
+//int maxDepthValue = 1040;  // full range 0-2047, rec'd 530-1040
+//int minDepthValue = 530;  
 int sW = 640;
 int sH = 480;
 int fps = 30;
@@ -27,14 +26,10 @@ AudioInput in;
 AudioRecorder fout;
 
 //--Kinect sectup
-Kinect kinect;
-boolean depth = true;
-boolean rgb = false;
-boolean ir = false;
-boolean process = false;
-float deg = 15;  // orig 15
-int[] depthArray;
-int pixelCounter = 1;
+SimpleOpenNI context;
+boolean mirror = true;
+boolean depthSwitch = true;
+boolean rgbSwitch = false;
 //--
 
 int fontSize = 12;
@@ -93,14 +88,110 @@ String diffReport = "";
 
 PImage img,buffer;
 
+Button[] buttons = new Button[6];
+
+boolean modeRec=false;
+boolean modeRender=false;
+boolean modePreview=true;
+boolean needsSaving = false;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void setup(){
+  initKinect();
   setupRecord();
+  
+  /*
+  if(modeRec){
+  size(sW,sH,P2D);
+  }else if(!modeRec){
+  size(sW,sH,OPENGL);
+  }
+  */
+  size(sW,sH);
+  frameRate(fps);
+
+  buttons[0] = new Button(25, height-20, 30, color(240, 10, 10), 12, "rec");
+  buttons[1] = new Button(60, height-20, 30, color(200, 20, 200), 12, "raw");
+  buttons[2] = new Button(width-25, height-20, 30, color(50, 50, 220), 12, "save");
+  buttons[3] = new Button(width-60, height-20, 30, color(20, 200, 20), 12, "play");
+  buttons[4] = new Button(95, height-20, 30, color(100, 100, 100), 12, "stop");
+  buttons[5] = new Button(width/2, height-20, 30, color(200, 200, 50), 12, "cam");
 }
 
 void draw(){
+  if(modePreview){
+  background(0);
+  drawCam();
+  }else{
+  background(0);
+  }
+  
+  if(modeRec){
   drawRecord();
+  }else if(modeRender){
+   drawRender();
+  }
+  
+  buttonHandler();
+  recDot();
+}
+
+void buttonHandler() {
+  for (int i=0;i<buttons.length;i++) {
+    buttons[i].checkButton();
+    buttons[i].drawButton();
+  }
+}
+
+void mouseReleased(){
+  if (buttons[0].clicked) { //REC
+  modesRefresh();
+  modeRec=true;
+  if(!needsSaving){
+  needsSaving=true;
+  }
+  } 
+  else if (buttons[1].clicked) { //RAW
+  modesRefresh();
+  //modeRender=true;
+  }
+    else if (buttons[2].clicked) { //SAVE
+  modesRefresh();
+  //modeRender=true;
+  }
+    else if (buttons[3].clicked) { //PLAY
+  modesRefresh();
+  //modeRender=true;
+  }
+    else if (buttons[4].clicked) { //STOP
+  modesRefresh();
+  if(needsSaving){
+      doSaveWrapup();
+  }
+  }
+    else if (buttons[5].clicked) { //CAM
+  modesRefresh();
+  modePreview = !modePreview;
+  }
+}
+
+void buttonsRefresh() {
+  for (int i=0;i<buttons.length;i++) {
+    buttons[i].clicked = false;
+  }
+}
+
+void modesRefresh() {
+  buttonsRefresh();
+  counter=1;
+  modeRec = false;
+  modeRender = false;
+}
+
+void drawCam(){
+  context.update();
+  image(context.depthImage(),-4,0);
 }
 
 
