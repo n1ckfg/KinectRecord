@@ -29,27 +29,33 @@ void reInit() {
   subtractFrameCounter = 0;
   xmlFileName = readFilePath + "/" + readFileName + shotNum + ".xml";
   errorAllow = 0;
-  loaded = false;
+  loadedForRender = false;
   countFolder();
   xmlLoad();
 }
 
-void xmlEventRead(proxml.XMLElement element) {
-  //this function is ccalled by default when an XML object is loaded
+void xmlEvent(proxml.XMLElement element) {
+if(modeRec){
+  //this function is ccalled by default when an XML object is loadedForRender
   xmlFile = element;
   //parseXML(); //appelle la fonction qui analyse le fichier XML
-  loaded = true;
+  loadedForRec = true;
+}else if(modeRender){  //this function is ccalled by default when an XML object is loadedForRender
+  xmlFile = element;
+  //parseXML(); //appelle la fonction qui analyse le fichier XML
+  loadedForRender = true;
   readTimestamps();
   println("average interval: " + getAverageInterval() + " ms   |   correct interval: " + idealInterval + " ms");
+}
 }
 
 
 void drawRender() {
   background(0);
   if (shotNum<=numberOfFolders) {
-    if (loaded) {
+    if (loadedForRender) {
       if (readFrameNum<readFrameNumMax) {
-        readString = readFilePath + "/" + readFileName + shotNum + "/" + readFileName + shotNum + "_frame" + readFrameNum + "." + readFileType;
+        readString = readFilePath + "/" + readFileName + shotNum + folderIndicator+"/" + readFileName + shotNum + "_frame" + readFrameNum + "." + readFileType;
         println("-- read: " + readString + "     timestamp: " + timestamps[readFrameNum-1]  + " ms");
         img = loadImage(readString);
         if(record3D){
@@ -101,14 +107,14 @@ void drawRender() {
 }
 
 void countFolder() {
-  dataFolder = new File(sketchPath, readFilePath + "/" + readFileName + shotNum+"/");
+  dataFolder = new File(sketchPath, readFilePath + "/" + readFileName + shotNum+folderIndicator+"/");
   numFiles = dataFolder.list();
   readFrameNumMax = numFiles.length+1;
 }
 
 void writeFile(int reps) {
   for (int i=0;i<reps;i++) {
-    writeString = writeFilePath + "/" + writeFileName + shotNum + "/" + writeFileName + shotNum + "_frame"+writeFrameNum+"."+writeFileType;
+    writeString = writeFilePath + "/" + writeFileName + shotNum + folderIndicator+"/" + writeFileName + shotNum + "_frame"+writeFrameNum+"."+writeFileType;
     
     saveFrame(writeString);
 
@@ -213,7 +219,7 @@ void objGenerate(){
 }
 
 void objBegin(){
-        beginRaw("superCAD.ObjFile", writeFilePath + "/" + writeFileName + shotNum + "/" + writeFileName + shotNum + "_frame"+writeFrameNum+"."+ "obj"); // Start recording to the file
+        beginRaw("superCAD.ObjFile", writeFilePath + "/" + writeFileName + shotNum + folderIndicator+"/" + writeFileName + shotNum + "_frame"+writeFrameNum+"."+ "obj"); // Start recording to the file
 }
 
 void objEnd(){

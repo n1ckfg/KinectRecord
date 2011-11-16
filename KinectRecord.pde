@@ -18,6 +18,14 @@ String fileType = "tga";  //tif, tga, jpg, png; use tga for best speed
 String audioFileType = "wav";
 String fileName = "shot";
 String filePath = "data";
+String folderIndicator = "_folder";
+
+  int folderCounterOrig=0;
+  int filesCounterOrig = 0;
+  int playCounterOrig=1;  
+  int folderCounter=folderCounterOrig;
+  int filesCounter = filesCounterOrig;
+  int playCounter=playCounterOrig;
 //**************************************
 
 //sound
@@ -30,6 +38,7 @@ SimpleOpenNI context;
 boolean mirror = true;
 boolean depthSwitch = true;
 boolean rgbSwitch = false;
+boolean firstRun = true;
 //--
 
 int fontSize = 12;
@@ -45,14 +54,15 @@ String sayText;
 
 XMLInOut xmlIO;
 proxml.XMLElement xmlFile;
-boolean loaded = false;
+boolean loadedForRec = false;
+boolean loadedForRender = false;
 
 //-----------------------------------------
 
 //render
 //**************************************
 boolean record3D = false; // records 3D rendering or just time-corrects original depth map
-int numberOfFolders = 1;  //right now you must set this manually!
+int numberOfFolders = 1;  
 String readFilePath = "data";
 String readFileName = "shot";
 String readFileType = "tga"; // record with tga for speed
@@ -86,53 +96,70 @@ float idealInterval = 1000/fps;
 float errorAllow = 0;
 String diffReport = "";
 
-PImage img,buffer;
+PImage img, buffer;
 
 Button[] buttons = new Button[6];
 
 boolean modeRec=false;
 boolean modeRender=false;
-boolean modePreview=true;
+boolean modePreview=false;
+boolean modePlay=false;
 boolean needsSaving = false;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-void setup(){
-  initKinect();
+void setup() {
+  initPlay();
+  setupRender();
+  //initKinect();
   setupRecord();
-  
+
   /*
   if(modeRec){
-  size(sW,sH,P2D);
-  }else if(!modeRec){
-  size(sW,sH,OPENGL);
-  }
-  */
-  size(sW,sH);
+   size(sW,sH,P2D);
+   }else if(!modeRec){
+   size(sW,sH,OPENGL);
+   }
+   */
+  size(sW, sH, OPENGL);
   frameRate(fps);
 
   buttons[0] = new Button(25, height-20, 30, color(240, 10, 10), 12, "rec");
-  buttons[1] = new Button(60, height-20, 30, color(200, 20, 200), 12, "raw");
-  buttons[2] = new Button(width-25, height-20, 30, color(50, 50, 220), 12, "save");
-  buttons[3] = new Button(width-60, height-20, 30, color(20, 200, 20), 12, "play");
-  buttons[4] = new Button(95, height-20, 30, color(100, 100, 100), 12, "stop");
+  buttons[1] = new Button(width-25, height-20, 30, color(200, 20, 200), 12, "->3D");
+  buttons[2] = new Button(width-60, height-20, 30, color(50, 50, 220), 12, "->2D");
+  buttons[3] = new Button(width-95, height-20, 30, color(20, 200, 20), 12, "play");
+  buttons[4] = new Button(60, height-20, 30, color(100, 100, 100), 12, "stop");
   buttons[5] = new Button(width/2, height-20, 30, color(200, 200, 50), 12, "cam");
+  //buttons[6] = new Button(60, height-20, 30, color(200, 20, 200), 12, "raw");
 }
 
-void draw(){
-  if(modePreview){
-  background(0);
-  drawCam();
-  }else{
-  background(0);
+void draw() {
+  if((modePreview||modeRec)&&firstRun){
+      initKinect();
+      firstRun=false;
   }
-  
-  if(modeRec){
-  drawRecord();
-  }else if(modeRender){
-   drawRender();
+  if (modePreview) {
+    background(0);
+    drawCam();
   }
-  
+  else {
+    background(0);
+  }
+
+  if (modeRec) {
+    drawRecord();
+  }
+  else if (modeRender) {
+    if(!loadedForRender){
+    initPlay();
+    setupRender();
+    }
+    drawRender();
+  }
+  else if(modePlay){
+  drawPlay();
+  }
+
   buttonHandler();
   recDot();
 }
@@ -144,35 +171,40 @@ void buttonHandler() {
   }
 }
 
-void mouseReleased(){
+void mouseReleased() {
   if (buttons[0].clicked) { //REC
-  modesRefresh();
-  modeRec=true;
-  if(!needsSaving){
-  needsSaving=true;
-  }
+    modesRefresh();
+    modeRec=true;
+    if (!needsSaving) {
+      needsSaving=true;
+    }
   } 
-  else if (buttons[1].clicked) { //RAW
-  modesRefresh();
-  //modeRender=true;
+  else if (buttons[1].clicked) { //3D render
+    modesRefresh();
+    record3D=true;
+    zscale=3;
+    modeRender=true;
   }
-    else if (buttons[2].clicked) { //SAVE
-  modesRefresh();
-  //modeRender=true;
+  else if (buttons[2].clicked) { //2D render
+    modesRefresh();
+    record3D=false;
+    zscale=1;
+    modeRender=true;
   }
-    else if (buttons[3].clicked) { //PLAY
-  modesRefresh();
-  //modeRender=true;
+  else if (buttons[3].clicked) { //PLAY
+    modesRefresh();
+    initPlay();
+    modePlay=true;
   }
-    else if (buttons[4].clicked) { //STOP
-  modesRefresh();
-  if(needsSaving){
+  else if (buttons[4].clicked) { //STOP
+    modesRefresh();
+    if (needsSaving) {
       doSaveWrapup();
+    }
   }
-  }
-    else if (buttons[5].clicked) { //CAM
-  modesRefresh();
-  modePreview = !modePreview;
+  else if (buttons[5].clicked) { //CAM
+    modesRefresh();
+    modePreview = !modePreview;
   }
 }
 
@@ -187,11 +219,55 @@ void modesRefresh() {
   counter=1;
   modeRec = false;
   modeRender = false;
+  modePlay = false;
+  modePreview = false;
+  loadedForRec = false;
+  loadedForRender = false;
 }
 
-void drawCam(){
-  context.update();
-  image(context.depthImage(),-4,0);
+void drawCam() {
+  if (!firstRun) {
+    context.update();
+    image(context.depthImage(), -4, 0);
+  }
 }
 
+void initPlay(){
+  folderCounter=folderCounterOrig;
+  filesCounter = filesCounterOrig;
+  playCounter=playCounterOrig;
+  
+  File dataFolder = new File(sketchPath, filePath + "/");
+  String[] allFiles = dataFolder.list();
+  for (int i=0;i<allFiles.length;i++) {
+    if (allFiles[i].toLowerCase().endsWith(folderIndicator)) {
+      folderCounter++;
+    }
+  }
+  dataFolder = new File(sketchPath, filePath + "/" + fileName + folderCounter + folderIndicator); 
+  allFiles = dataFolder.list();
+  for(int j=0;j<allFiles.length;j++){
+      if (allFiles[j].toLowerCase().endsWith(fileType)) {
+        filesCounter++;
+      }
+  }
+  
+  numberOfFolders=folderCounter;
+  shotNum = folderCounter;
+  shot = folderCounter+1;
+  println("folders: " + folderCounter + "   last shot frames: " + filesCounter);
+  
+}
+
+void drawPlay(){
+String tempPath = filePath + "/" + fileName + folderCounter + folderIndicator+"/" + fileName + folderCounter + "_frame" + playCounter + "." + fileType;
+//println(tempPath);  
+displayImg=loadImage(tempPath);
+image(displayImg,0,0);
+if(playCounter<filesCounter){
+  playCounter++;
+}else{
+  playCounter=playCounterOrig;
+}
+}
 

@@ -21,7 +21,7 @@ void drawRecord() {
     }
     timestamp=millis();
     sayText = fileName + shot + "_frame" + counter + "." + fileType;
-    saveFrame(filePath + "/" + fileName + shot + "/" + sayText);
+    saveFrame(filePath + "_folder" + "/" + fileName + shot + "/" + sayText);
     xmlAdd();
     sayText="REC " + sayText;
     println(sayText);
@@ -29,18 +29,11 @@ void drawRecord() {
   }
 }
 
-void xmlEventRec(proxml.XMLElement element) {
-  //this function is ccalled by default when an XML object is loaded
-  xmlFile = element;
-  //parseXML(); //appelle la fonction qui analyse le fichier XML
-  loaded = true;
-}
-
 //-----------------------------------------
 
 void recDot() {
   fill(200);
-  text(sayText,40,35);
+  text(sayText,80,35);
   text(int(frameRate) + " fps", sW-60,35);
   noFill();
   if(record&&(counter%2!=0)) {
