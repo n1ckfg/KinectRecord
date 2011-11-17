@@ -69,7 +69,9 @@ String readFileType = "tga"; // record with tga for speed
 String writeFilePath = "render";
 String writeFileName = "shot";
 String writeFileType = "tga";  // render with png to save space
-float zscale = 1; //orig 3
+float zscaleMin = 1;
+float zscaleMax = 3;
+float zscale = zscaleMin; //orig 3
 float zskew = 10;
 //**************************************
 
@@ -182,13 +184,11 @@ void mouseReleased() {
   else if (buttons[1].clicked) { //3D render
     modesRefresh();
     record3D=true;
-    zscale=3;
     modeRender=true;
   }
   else if (buttons[2].clicked) { //2D render
     modesRefresh();
     record3D=false;
-    zscale=1;
     modeRender=true;
   }
   else if (buttons[3].clicked) { //PLAY
