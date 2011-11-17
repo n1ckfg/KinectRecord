@@ -23,6 +23,7 @@ void xmlLoad() {
 }
 
 void reInit() {
+  //~~~
   readFrameNum = readFrameNumOrig;
   writeFrameNum = readFrameNum;
   addFrameCounter = 0;

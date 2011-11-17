@@ -155,6 +155,7 @@ void draw() {
     if(!loadedForRender){
     initPlay();
     setupRender();
+    shotNum = shotNumOrig;
     }
     drawRender();
   }
