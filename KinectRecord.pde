@@ -4,6 +4,22 @@ import processing.opengl.*;
 import proxml.*;
 import peasy.*;
 import superCAD.*;
+import javax.swing.JFrame;
+import java.awt.*;
+
+JFrame new_window;
+MApplet sketchviewer;
+
+void loadNewWindow(){
+  if(new_window == null){ // omitting this allows multiple windows
+  new_window = new JFrame();
+  sketchviewer = new MApplet();
+  new_window.getContentPane().add(sketchviewer, BorderLayout.CENTER);
+  new_window.setVisible(true);
+  sketchviewer.init();
+  }
+  new_window.setSize(sW, sH);
+}
 
 //-----------------------------------------
 //rec
@@ -123,7 +139,7 @@ void setup() {
    size(sW,sH,OPENGL);
    }
    */
-  size(sW, sH, OPENGL);
+  size(sW, sH,P2D);
   frameRate(fps);
 
   buttons[0] = new Button(25, height-20, 30, color(240, 10, 10), 12, "rec");
@@ -149,20 +165,14 @@ void draw() {
   }
 
   if (modeRec) {
+    modePreview=true;
     drawRecord();
   }
-  else if (modeRender) {
-    if(!loadedForRender){
-    initPlay();
-    setupRender();
-    shotNum = shotNumOrig;
-    }
-    drawRender();
-  }
-  else if(modePlay){
+  
+  if(modePlay){
   drawPlay();
   }
-
+  //modeRender moved to separate window
   buttonHandler();
   recDot();
 }
@@ -179,15 +189,20 @@ void mouseReleased() {
     modesRefresh();
     modeRec=true;
     if (!needsSaving) {
+      setupRecord();
       needsSaving=true;
     }
   } 
   else if (buttons[1].clicked) { //3D render
+    loadNewWindow();
+    shotNum = shotNumOrig;
     modesRefresh();
     record3D=true;
     modeRender=true;
   }
   else if (buttons[2].clicked) { //2D render
+    loadNewWindow();
+    shotNum = shotNumOrig;
     modesRefresh();
     record3D=false;
     modeRender=true;
@@ -247,10 +262,14 @@ void initPlay(){
   }
   dataFolder = new File(sketchPath, filePath + "/" + fileName + folderCounter + folderIndicator); 
   allFiles = dataFolder.list();
-  for(int j=0;j<allFiles.length;j++){
+  try{
+    for(int j=0;j<allFiles.length;j++){
       if (allFiles[j].toLowerCase().endsWith(fileType)) {
         filesCounter++;
       }
+  }
+  }catch(Exception e){
+  filesCounter=0;
   }
   
   numberOfFolders=folderCounter;
@@ -261,6 +280,7 @@ void initPlay(){
 }
 
 void drawPlay(){
+  try{
 String tempPath = filePath + "/" + fileName + folderCounter + folderIndicator+"/" + fileName + folderCounter + "_frame" + playCounter + "." + fileType;
 //println(tempPath);  
 displayImg=loadImage(tempPath);
@@ -270,5 +290,8 @@ if(playCounter<filesCounter){
 }else{
   playCounter=playCounterOrig;
 }
+  }catch(Exception e){
+    //
+  }
 }
 

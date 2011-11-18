@@ -21,7 +21,7 @@ void drawRecord() {
     }
     timestamp=millis();
     sayText = fileName + shot + "_frame" + counter + "." + fileType;
-    saveFrame(filePath + "_folder" + "/" + fileName + shot + "/" + sayText);
+    saveFrame(filePath + "/" + fileName + shot + folderIndicator + "/" + sayText);
     xmlAdd();
     sayText="REC " + sayText;
     println(sayText);

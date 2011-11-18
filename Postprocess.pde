@@ -1,6 +1,32 @@
 //This is a utility to post-process and check for drop frames in Kinect recordings.
 //Copy the data folder recorded by Kinect_just_record before you start.
 
+class MApplet extends PApplet{
+  PApplet pgx;
+
+void setup(){
+size(sW,sH,P3D);
+frameRate(fps);
+background(0);
+}
+
+void draw(){
+  tester();
+   if (modeRender) {
+    if(!loadedForRender){
+    initPlay();
+    setupRender();
+    shotNum = shotNumOrig;
+    }
+    drawRender();
+  }
+}
+
+}
+
+void tester(){
+println("*******************************");
+}
 
 void setupRender() {
   reInit();
@@ -56,6 +82,7 @@ void drawRender() {
   if (shotNum<=numberOfFolders) {
     if (loadedForRender) {
       if (readFrameNum<readFrameNumMax) {
+        //******
         readString = readFilePath + "/" + readFileName + shotNum + folderIndicator+"/" + readFileName + shotNum + "_frame" + readFrameNum + "." + readFileType;
         println("-- read: " + readString + "     timestamp: " + timestamps[readFrameNum-1]  + " ms");
         img = loadImage(readString);
@@ -109,8 +136,13 @@ void drawRender() {
 
 void countFolder() {
   dataFolder = new File(sketchPath, readFilePath + "/" + readFileName + shotNum+folderIndicator+"/");
-  numFiles = dataFolder.list();
-  readFrameNumMax = numFiles.length+1;
+  try{
+    numFiles = dataFolder.list();
+    readFrameNumMax = numFiles.length+1;
+    println("********* " + readFrameNumMax);
+  }catch(Exception e){
+  //
+  }
 }
 
 void writeFile(int reps) {
