@@ -96,7 +96,7 @@ void imageProcess() {
 //---
 
 void initKinect() {
-  context = new SimpleOpenNI(this);
+  context = new SimpleOpenNI(this,SimpleOpenNI.RUN_MODE_MULTI_THREADED);
   context.setMirror(mirror);
   if(depthSwitch){
     context.enableDepth();
